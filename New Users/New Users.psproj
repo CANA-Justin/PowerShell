@@ -1,0 +1,11 @@
+﻿<Project>
+	<Version>2.0</Version>
+	<FileID>5f59646a-71aa-4fa5-a89a-df7a065da7dd</FileID>
+	<ProjectType>1</ProjectType>
+	<Files>
+		<File Build="0">New Users.psd1</File>
+		<File Build="0">New Users.psm1</File>
+		<File Build="1">Test-Module.ps1</File>
+	</Files>
+	<StartupScript>Test-Module.ps1</StartupScript>
+</Project>
