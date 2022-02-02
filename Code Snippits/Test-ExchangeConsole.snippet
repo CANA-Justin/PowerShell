@@ -1,0 +1,22 @@
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+	<CodeSnippet Format="1.0.0">
+		<Header>
+			<Title>Test-ExchangeConsole</Title>
+			<Shortcut></Shortcut>
+			<Description>Check that command is going to be run in the Exchange Console rather then the Powershell console</Description>
+			<Author>CANA IT</Author>
+			<SnippetTypes>
+				<SnippetType>Expansion</SnippetType>
+			</SnippetTypes>
+		</Header>
+		<Snippet>
+			<Code Language="PowerShell">
+				<![CDATA[if (! (Get-PSSnapin -Registered Microsoft.Exchange.Management.PowerShell.E2010 -ErrorAction:SilentlyContinue))
+{
+	Write-Warning "This script must be run in the Exchange Management Shell"
+	exit
+}]]>
+			</Code>
+		</Snippet>
+	</CodeSnippet>
+</CodeSnippets>

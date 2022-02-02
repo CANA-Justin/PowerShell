@@ -1,0 +1,26 @@
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+	<CodeSnippet Format="1.0.0">
+		<Header>
+			<Title>Send-MailMessage</Title>
+			<Shortcut></Shortcut>
+			<Description>Template for having a powershell script send an email</Description>
+			<Author>Justin Holmes</Author>
+			<SnippetTypes>
+				<SnippetType>Expansion</SnippetType>
+			</SnippetTypes>
+		</Header>
+		<Snippet>
+			<Code Language="PowerShell">
+				<![CDATA[$From = "EmailAddress@gmail.com"
+$To = "SomeOtherAddress@whatever.com"
+$Cc = "AThirdUser@somewhere.com"
+$Attachment = "C:\users\Username\Documents\SomeTextFile.txt"
+$Subject = "Here's the Email Subject"
+$Body = "This is what I want to say"
+$SMTPServer = "smtp.gmail.com"
+$SMTPPort = "587"
+Send-MailMessage -From $From -to $To -Cc $Cc -Subject $Subject -Body $Body -SmtpServer $SMTPServer -port $SMTPPort -UseSsl -Credential (Get-Credential) -Attachments $Attachment –DeliveryNotificationOption OnSuccess]]>
+			</Code>
+		</Snippet>
+	</CodeSnippet>
+</CodeSnippets>

@@ -1,0 +1,2 @@
+﻿Import-Module Microsoftteams
+Connect-MicrosoftTeams

@@ -1,0 +1,2 @@
+﻿$ReportPath = 'J:\IT Storage\teamsuser.csv'
+Get-CsOnlineUser -Filter {EnterpriseVoiceEnabled -eq $True} | Sort-Object DisplayName | Select-Object Displayname, Sipaddress, LineURI, EnterpriseVoiceEnabled, OnlineVoiceRoutingPolicy, TenantDialPlan, VoicePolicy | export-csv $ReportPath

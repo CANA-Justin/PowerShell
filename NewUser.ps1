@@ -1,33 +1,99 @@
-﻿clear
-#Clearing the screen because
+﻿<#	
+	.NOTES
+	===========================================================================
+	 Created on:   	02/19/2019 11:58 AM
+	 Created by:   	Justin Holmes
+	 Organization: 	CANA IT
+	 Filename:     	NewUser.ps1
+	===========================================================================
+	.DESCRIPTION
+		A description of the file.
+#>
 
-$FirstName = $null
-$LastName = $null
-$ReportsTo = $null
-$CompanyNumber = $null
-$Username = $null
-$FullName = $null
-#Clearing varables for use
-
-Write-Host " /¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯\"
-Write-Host "|" -nonewline 
-Write-Host " CANA " -foreground Yellow -nonewline 
-Write-Host "New User creation scrip v0.01  |"
-Write-Host " \___________________________________/"
-Write-Host
-
-$FirstName = Read-Host -Prompt 'Paste the First Name of the user'
-$LastName = Read-Host -Prompt 'Paste the Lastname of the user'
-$ReportsTo = Read-Host -Prompt 'Paste who the user Reports To'
-$CompanyNumber = Read-Host -Prompt 'Enter the Company Number the user belongs to'
-$JobRoll = Read-Host -Prompt 'Enter the Roll the user belongs to'
-$Username = $Lastname+$Firstname.substring(0,1)
-$FullName = "$FirstName $LastName"
-$Username = $Username.ToLower()
-
-Write-Host You wrote $FullName, with a username of $Username reports to $ReportsTo in Company $CompanyNumber
+$GivenName="Dan"
+$FirstName="Justin"
+$SirName="Van Holmes"
+$UserName
+$namecheck
 
 
-$InAD = Get-ADUser -Filter {sAMAccountName -eq $Username}
-If ($InAD -eq $Null) {"User does not exist in AD"}
-Else {"User found in AD"}
+
+function Write-InVerboseMode
+{
+	[CmdletBinding()]
+	Param
+	(
+		[parameter(Position = 0, Mandatory = $true)]
+		[ValidateNotNullOrEmpty()]
+		[String]$text
+	)
+	Process
+	{
+		Write-Verbose $text
+	}
+}
+
+#This function will take the $FirstName & #SirName and convert it to the username SirName+First Letter of First Name#
+function MakeUsername ()
+{
+	
+	[CmdletBinding()]
+	PARAM ()
+	Write-Debug "Given name is $($GivenName)"
+	Write-Debug "First name is $($FirstName)"
+	Write-Debug "Last name is $($SirName)"
+	Write-Debug "User name is $($UserName)"
+	
+	$UserName = $SirName + $FirstName.substring(0, 1)
+	
+	Write-Debug "User name is now $($UserName)"
+	Write-Verbose "User name is now $($UserName)"
+	Write-Debug "Moving to function ValidateUserName"
+
+}
+
+#This function will check the username for whitespace or dashs.  White space will be removed, dashs just throw an information warning (as requested)#
+function ValidateUserName {
+
+	$UserName = $UserName.ToLower()
+	if ($UserName -match "\s") { write-verbose "This User Name contains a white space" }
+	if ($UserName -match "-") { Write-Information "The User Name $($UserName) contains a dash" }
+	Write-Verbose $UserName
+	
+	$UserName = $UserName -replace '(\s)', ''
+	
+	Write-Verbose $UserName
+	
+
+}
+
+#This function will check if the $UserName exists.  If it does it will add the 2nd letter from the $FirstName to the end of the $UserName#
+function CheckUserName ()
+{
+
+	
+try
+	{
+		$namecheck  = get-aduser -filter { samaccountname -like $UserName }
+	}
+	catch [Microsoft.ActiveDirectory.Management.ADIdentityNotFoundException]
+	{ }
+	
+	if ($namecheck.Enabled -eq $true)
+	{
+		Write-Verbose "$UserName is in use"
+		$UserName = $SirName + $FirstName.substring(0, 2)
+		Write-Verbose "trying username $UserName"
+		ValidateUserName
+		
+	}
+	
+	else
+	{
+		Write-Verbose "$UserName is avalable"
+	}
+	
+}
+
+
+

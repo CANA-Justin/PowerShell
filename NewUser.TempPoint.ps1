@@ -1,33 +1,51 @@
-﻿clear
-#Clearing the screen because
+﻿<#	
+	.NOTES
+	===========================================================================
+	 Created with: 	SAPIEN Technologies, Inc., PowerShell Studio 2019 v5.6.159
+	 Created on:   	02/19/2019 11:58 AM
+	 Created by:   	admJustin
+	 Organization: 	
+	 Filename:     	
+	===========================================================================
+	.DESCRIPTION
+		A description of the file.
+#>
 
-$FirstName = $null
-$LastName = $null
-$ReportsTo = $null
-$CompanyNumber = $null
-$Username = $null
-$FullName = $null
-#Clearing varables for use
-
-Write-Host " /¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯\"
-Write-Host "|" -nonewline 
-Write-Host " CANA " -foreground Yellow -nonewline 
-Write-Host "New User creation scrip v0.01  |"
-Write-Host " \___________________________________/"
-Write-Host
-
-$FirstName = Read-Host -Prompt 'Paste the First Name of the user'
-$LastName = Read-Host -Prompt 'Paste the Lastname of the user'
-$ReportsTo = Read-Host -Prompt 'Paste who the user Reports To'
-$CompanyNumber = Read-Host -Prompt 'Enter the Company Number the user belongs to'
-$JobRoll = Read-Host -Prompt 'Enter the Roll the user belongs to'
-$Username = $Lastname+$Firstname.substring(0,1)
-$FullName = "$FirstName $LastName"
-$Username = $Username.ToLower()
-
-Write-Host You wrote $FullName, with a username of $Username reports to $ReportsTo in Company $CompanyNumber
+$GivenName
+$FirstName="Justin"
+$SirName="Van Holmes"
+$UserName
 
 
-$InAD = Get-ADUser -Filter {sAMAccountName -eq $Username}
-If ($InAD -eq $Null) {"User does not exist in AD"}
-Else {"User found in AD"}
+
+function MakeUsername () {
+	$UserName = $SirName + $FirstName.substring(0, 1)
+	$UserName = $UserName.ToLower()
+	if ($UserName -match "\s") { Write-host "This UserName contains a white space" }
+	if ($UserName -match "-") { Write-host "This UserName contains a dash" }
+	Write-Host $UserName
+	
+	$UserName = $UserName -replace '(\s)', ''
+	
+	Write-Host $UserName
+	
+	CheckUserName
+}
+
+function CheckUserName ()
+{
+	
+	$user = Get-ADUser -filter { sAMAccountName -eq $UserName }
+	
+	if (!$user)
+	{
+		Write-Error "This username does not exist"
+		exit # or return, whatever is appropriate
+	}
+	
+	
+}
+
+MakeUsername
+
+
