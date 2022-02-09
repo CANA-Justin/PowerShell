@@ -1,57 +1,25 @@
 ﻿<#	
 	.NOTES
 	===========================================================================
-	 Created with: 	SAPIEN Technologies, Inc., PowerShell Studio 2021 v5.8.195
-	 Created on:   	10/15/2021 10:32 AM
-	 Created by:   	admJustin
-	 Organization: 	
-	 Filename:     	
+	 Created with: 	SAPIEN Technologies, Inc., PowerShell Studio 2022
+	 Created on:   	2/2/2022 10:32 AM
+	 Created by:   	Justin Holmes
+	 Organization: 	CANA Group of Companies
+	 Filename:     	CrediveraUploadAZcopy.ps1
 	===========================================================================
 	.DESCRIPTION
 		A description of the file.
 #>
 
-Import-Module -Name WinSCP
 
-$SFTPSite = 'ec2-35-182-144-114.ca-central-1.compute.amazonaws.com'
-$SFTPDirectory = '/home/cana/storage'
-$LocalDirectory = 'C:\CrediveraUpload\'
-$SshHostKeyFingerprint = "ssh-ed25519 255 IiU2R/mACg2O63dyKPkmEishrPL/b5BGjFz4GzUSfPc="
-
-#Create SFTP session using previously defined connection variables.
-$CheckFile = 'C:\CrediveraUpload\'
+$LocalDirectory = 'C:\VistaDataForCredivera\'
+$CheckFile = $LocalDirectory
 $FileExists = Test-Path $CheckFile
-
-$Session = New-Object WinSCP.Session
-$SessionOptions = New-Object WinSCP.SessionOptions
-$SessionOptions.Protocol = [WinSCP.Protocol]::Sftp
-$SessionOptions.HostName = $SFTPSite
-$SessionOptions.UserName = "cana"
-$SessionOptions.Password = ""
-$SessionOptions.SshPrivateKeyPath = "C:\CrediveraUpload\cana-sftp.ppk"
-$SessionOptions.SshHostKeyFingerprint = $SshHostKeyFingerprint
-
-try
-{
-	# Open the WinSCP.Session object using the WinSCP.SessionOptions object.
-	$session.Open($sessionOptions)
-	
-	# Set the default -WinSCPSession Parameter Value for other cmdlets.
-	Get-Command -Module WinSCP -ParameterName WinSCPSession | ForEach-Object {
-		$Global:PSDefaultParameterValues.Remove("$($_.Name):WinSCPSession")
-		$Global:PSDefaultParameterValues.Add("$($_.Name):WinSCPSession", $session)
-	}
-	
-}
-catch
-{
-	Write-Error $_
-	$session.Dispose()
-	exit (1)
-}
 
 $FileList = Get-ChildItem -Path $LocalDirectory -File -Filter *.csv
 
+#Setting the AZcopy logging location so that the logs are more easily avaiable
+$env:AZCOPY_LOG_LOCATION = "$LocalDirectory\AZlogs"
 
 If ($FileExists -eq $True)
 {
@@ -59,7 +27,10 @@ If ($FileExists -eq $True)
 	{
 		Write-Output "Processing file:  $($File.FullName)"
 		Try
-		{Send-WinSCPItem -WinSCPSession $Session -LocalPath $File.FullName -RemotePath $SFTPDirectory -Verbose -ErrorAction Stop }
+		{
+			Set-Location -Path $LocalDirectory
+			./azcopy.exe copy $File "https://stprodcaceftp01.blob.core.windows.net/storage?sv=2020-08-04&ss=bfqt&srt=sco&sp=rwdlacupitfx&se=2023-02-03T02:35:00Z&st=2022-02-02T18:35:00Z&spr=https&sig=45yRSnGXlu68UTpLpQwoqOYwBtci3Gx7Fa6fr8ZHAJc%3D" --overwrite true
+		}
 		Catch
 		{ Write-Warning "Error occurred with $($File.FullName). $($error[0].message)" }
 	}
@@ -68,14 +39,12 @@ Else
 {
 	Write-Host "No Files to upload, or folder $($CheckFile) does not exist"
 }
-Remove-WinSCPSession -WinSCPSession $Session -Verbose
-
 
 # SIG # Begin signature block
 # MIIqDQYJKoZIhvcNAQcCoIIp/jCCKfoCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBsuLpMhO3Pl3V6
-# YElHP5EsMUX3OTzZq/4XZra+mhc1uaCCJAYwggNfMIICR6ADAgECAgsEAAAAAAEh
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCXgKDQyVbDspDJ
+# 1FX5NJ7uP2/VAZ02jZJd1koF4r8JjqCCJAYwggNfMIICR6ADAgECAgsEAAAAAAEh
 # WFMIojANBgkqhkiG9w0BAQsFADBMMSAwHgYDVQQLExdHbG9iYWxTaWduIFJvb3Qg
 # Q0EgLSBSMzETMBEGA1UEChMKR2xvYmFsU2lnbjETMBEGA1UEAxMKR2xvYmFsU2ln
 # bjAeFw0wOTAzMTgxMDAwMDBaFw0yOTAzMTgxMDAwMDBaMEwxIDAeBgNVBAsTF0ds
@@ -271,30 +240,30 @@ Remove-WinSCPSession -WinSCPSession $Session -Verbose
 # GjAYBgoJkiaJk/IsZAEZFgpjYW5hLWdyb3VwMRkwFwYKCZImiZPyLGQBGRYJY2Fu
 # YWdyb3VwMSAwHgYDVQQDExdjYW5hZ3JvdXAtVkNBTkFDQS0wMi1DQQITTgAAId6x
 # 86WzX82CJwADAAAh3jANBglghkgBZQMEAgEFAKBMMBkGCSqGSIb3DQEJAzEMBgor
-# BgEEAYI3AgEEMC8GCSqGSIb3DQEJBDEiBCCwss9yA9ohuUHVKRXGElXODogyf9Px
-# 7UxCBxGCiSZ+tzANBgkqhkiG9w0BAQEFAASCAQBJqfW0/IB4PYQoivSC6WC6OBqY
-# rkPSVCMVk45aDD0EgP+Qd+/Z1jg1oMctj5AWsoAqZe8WWkfCdxZx/zLwE6rsC/0V
-# 0VRlAA1gJqhUSSrLv7TqyzuILK1vWeGMQqoJHLRrtmfx1T9s7MWT8b/bITSEz6RV
-# VJ9EuLO/ZdWgAlgazb8rli9WzzswM8bDm/UGLTgS9w+4TEwn/1Pp40uPSL8g+al1
-# Ls2Ueu1lKNPNQtg3Bb7b0jgJer+nzLX7JFLzCyMI3cInRTZWJuj8/17mOM6ktw3F
-# xRj410UeaISJVn8e394VVd+34kI4EJkU6m1wtTyZ01wkyxuBhlxkDRFIHNyEoYID
+# BgEEAYI3AgEEMC8GCSqGSIb3DQEJBDEiBCDJJ9izxAXFQCs4GQ4Afv6shvWE22qK
+# ehgbgUO3Ny9o8DANBgkqhkiG9w0BAQEFAASCAQAaQms6MG1VHYq8jA9aXhQL2vax
+# PtvecraAphaazZjG4LZ92N1e2C1YEeVRYfTX5BrXyBweyN/7qgHkk9CazIcURoxi
+# Dq3syCpAMpzoTQ1UMeM2YNcfPczioHYaB7CgNvbtYuyMZz/cRa+YCv03KRoXQcB3
+# KE5mllSL/NWeZp5o9+0g6hQpfYN/72EqKs9rSigJSL3FoWYK91ybN1ZhKY+cSEm4
+# Z6iL5UOmNVNvrd7a+FpFz8pESc75aX8YOAKtTOydoWGHE/m+WA5hjd6kV266BP3I
+# EgY9NLY565EneLFMPC8fg5besiqT2Ru2ycJkSramtQbvGGU+Fxvebh+3+l4voYID
 # cDCCA2wGCSqGSIb3DQEJBjGCA10wggNZAgEBMG8wWzELMAkGA1UEBhMCQkUxGTAX
 # BgNVBAoTEEdsb2JhbFNpZ24gbnYtc2ExMTAvBgNVBAMTKEdsb2JhbFNpZ24gVGlt
 # ZXN0YW1waW5nIENBIC0gU0hBMzg0IC0gRzQCEAGE06jON4HrV/T9h3uDrrIwDQYJ
 # YIZIAWUDBAIBBQCgggE/MBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZI
-# hvcNAQkFMQ8XDTIyMDIwMTE4MTkxOVowLQYJKoZIhvcNAQk0MSAwHjANBglghkgB
-# ZQMEAgEFAKENBgkqhkiG9w0BAQsFADAvBgkqhkiG9w0BCQQxIgQgSxC8vRn8lakc
-# wBrynP9jqJbibFA7duViscmmTDP0sCwwgaQGCyqGSIb3DQEJEAIMMYGUMIGRMIGO
+# hvcNAQkFMQ8XDTIyMDIwMzE4MDc0NlowLQYJKoZIhvcNAQk0MSAwHjANBglghkgB
+# ZQMEAgEFAKENBgkqhkiG9w0BAQsFADAvBgkqhkiG9w0BCQQxIgQgF3ZH8P+6qsgx
+# aBNjpzbD0Ssxnys3G32GQcQNKY2YwbgwgaQGCyqGSIb3DQEJEAIMMYGUMIGRMIGO
 # MIGLBBTdV7WzhzyGGynGrsRzGvvojXXBSTBzMF+kXTBbMQswCQYDVQQGEwJCRTEZ
 # MBcGA1UEChMQR2xvYmFsU2lnbiBudi1zYTExMC8GA1UEAxMoR2xvYmFsU2lnbiBU
 # aW1lc3RhbXBpbmcgQ0EgLSBTSEEzODQgLSBHNAIQAYTTqM43getX9P2He4OusjAN
-# BgkqhkiG9w0BAQsFAASCAYApV1YVwMSXE1zup4AzevKllL+AhWKspKq2CZKyS4Ai
-# W1O2ysSZ3vHxQpU/IxEBHZ0cOZtGwzH9cp2IffAR/G7tzZzNmzBzAi/cMN93h3GE
-# zefS+qF3Xk++RdND+MgfqaY0PvNpDDltfbFGxLJS/Ew9NdKdALqVA19qVCVrJ3o9
-# D+M8q6BUBlWNYuHqiTdQqfAO5o7pQn+lJeA21EvIYqv+hPdyunYq64asfxntUcY0
-# 5U/UgoeuPVVRj8eJcI5nW/18ZzhKYr3gai2oUMeIj9ik0VhjsBZWofcDeoWnm1Xf
-# P8Q90A9QRFOiSuEAr/HdkzK6WqAKo+5gqcGziQX8njlkufmayX2IeAqemhqqBcKY
-# EqzEflYH7WrA4S0jx+7+3AjsZSg0ZHMMnhM4vYEYTN/QLfS08c3tH7rkXp+u3Y4x
-# NKiEPkGeewvkTgiH9gFare/MDQzyJvRQVpbM9z3vwiLYHFp0X6OjoFfSzon5GFbj
-# OUs2Rbl1dfdg3fzlyFVhdOA=
+# BgkqhkiG9w0BAQsFAASCAYAeOmHFQWSt93dCfsgmFHHH0Uf2ibBVFvzWL6p9OCqA
+# zVc/n3N7yfuox6PXCC7UGQ4gY4zvnmMckeG61Uq2SH2WBXzLt6T8+Z6BkRNgdn7v
+# 1PIDTeCDQvSZIfsU3xfqOwNQiH9ejtyJB6EDAWjERruVwQKkGeAKzrhZqpk8duTi
+# 65geovkCHGSJWeexbbVv1Lc0xe9bVZYJeJ1LYsET5QKvzAcMIk10AS8SGpFPRxnn
+# mpT/apid3f5cFcrFoH60PXS8C2rP0u1e2/kSqxD3v4F4SdwuyYf+eOkrY46QxFRV
+# LUYfW1JJAF2JwCj/5bbwS9gWkCTvT8X1bFOwewMaRZvqyhld1PtYEyIwVsB2UbP4
+# hv+Vp8kzf3wbMIrLBW5b+BEqNq2mNX57OHKUxB+Zkp0z9j+vbO+1hfcjVNTW2aV0
+# nn7DaTtxtpPyazG6h6/FATuVeyPKKHUs9H51bOLV3TtAGx+EdpVJqeKrqWIPGukD
+# MO5y8U9ojQxjUXRyIsje8Zc=
 # SIG # End signature block

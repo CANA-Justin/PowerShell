@@ -2,16 +2,53 @@
 	.NOTES
 	===========================================================================
 	 Created with: 	SAPIEN Technologies, Inc., PowerShell Studio 2021 v5.8.195
-	 Created on:   	2/2/2022 10:32 AM
+	 Created on:   	10/15/2021 10:32 AM
 	 Created by:   	Justin Holmes
-	 Organization: 	
-	 Filename:     	CrediveraUpload2.ps1
+	 Organization: 	CANA Group of Companies
+	 Filename:     	CrediveraUploadSFTP.ps1
 	===========================================================================
 	.DESCRIPTION
 		A description of the file.
 #>
 
+Import-Module -Name WinSCP
 
+$SFTPSite = 'ec2-35-182-144-114.ca-central-1.compute.amazonaws.com'
+$SFTPDirectory = '/home/cana/storage'
+$LocalDirectory = 'C:\CrediveraUpload\'
+$SshHostKeyFingerprint = "ssh-ed25519 255 IiU2R/mACg2O63dyKPkmEishrPL/b5BGjFz4GzUSfPc="
+
+#Create SFTP session using previously defined connection variables.
+$CheckFile = 'C:\CrediveraUpload\'
+$FileExists = Test-Path $CheckFile
+
+$Session = New-Object WinSCP.Session
+$SessionOptions = New-Object WinSCP.SessionOptions
+$SessionOptions.Protocol = [WinSCP.Protocol]::Sftp
+$SessionOptions.HostName = $SFTPSite
+$SessionOptions.UserName = "cana"
+$SessionOptions.Password = ""
+$SessionOptions.SshPrivateKeyPath = "C:\CrediveraUpload\cana-sftp.ppk"
+$SessionOptions.SshHostKeyFingerprint = $SshHostKeyFingerprint
+
+try
+{
+	# Open the WinSCP.Session object using the WinSCP.SessionOptions object.
+	$session.Open($sessionOptions)
+	
+	# Set the default -WinSCPSession Parameter Value for other cmdlets.
+	Get-Command -Module WinSCP -ParameterName WinSCPSession | ForEach-Object {
+		$Global:PSDefaultParameterValues.Remove("$($_.Name):WinSCPSession")
+		$Global:PSDefaultParameterValues.Add("$($_.Name):WinSCPSession", $session)
+	}
+	
+}
+catch
+{
+	Write-Error $_
+	$session.Dispose()
+	exit (1)
+}
 
 $FileList = Get-ChildItem -Path $LocalDirectory -File -Filter *.csv
 
@@ -37,8 +74,8 @@ Remove-WinSCPSession -WinSCPSession $Session -Verbose
 # SIG # Begin signature block
 # MIIqDQYJKoZIhvcNAQcCoIIp/jCCKfoCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBsuLpMhO3Pl3V6
-# YElHP5EsMUX3OTzZq/4XZra+mhc1uaCCJAYwggNfMIICR6ADAgECAgsEAAAAAAEh
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCArk4hv/0N0uJd8
+# B1Kg8ma9ZvsNA4YNgas1yepOBvs+4qCCJAYwggNfMIICR6ADAgECAgsEAAAAAAEh
 # WFMIojANBgkqhkiG9w0BAQsFADBMMSAwHgYDVQQLExdHbG9iYWxTaWduIFJvb3Qg
 # Q0EgLSBSMzETMBEGA1UEChMKR2xvYmFsU2lnbjETMBEGA1UEAxMKR2xvYmFsU2ln
 # bjAeFw0wOTAzMTgxMDAwMDBaFw0yOTAzMTgxMDAwMDBaMEwxIDAeBgNVBAsTF0ds
@@ -234,30 +271,30 @@ Remove-WinSCPSession -WinSCPSession $Session -Verbose
 # GjAYBgoJkiaJk/IsZAEZFgpjYW5hLWdyb3VwMRkwFwYKCZImiZPyLGQBGRYJY2Fu
 # YWdyb3VwMSAwHgYDVQQDExdjYW5hZ3JvdXAtVkNBTkFDQS0wMi1DQQITTgAAId6x
 # 86WzX82CJwADAAAh3jANBglghkgBZQMEAgEFAKBMMBkGCSqGSIb3DQEJAzEMBgor
-# BgEEAYI3AgEEMC8GCSqGSIb3DQEJBDEiBCCwss9yA9ohuUHVKRXGElXODogyf9Px
-# 7UxCBxGCiSZ+tzANBgkqhkiG9w0BAQEFAASCAQBJqfW0/IB4PYQoivSC6WC6OBqY
-# rkPSVCMVk45aDD0EgP+Qd+/Z1jg1oMctj5AWsoAqZe8WWkfCdxZx/zLwE6rsC/0V
-# 0VRlAA1gJqhUSSrLv7TqyzuILK1vWeGMQqoJHLRrtmfx1T9s7MWT8b/bITSEz6RV
-# VJ9EuLO/ZdWgAlgazb8rli9WzzswM8bDm/UGLTgS9w+4TEwn/1Pp40uPSL8g+al1
-# Ls2Ueu1lKNPNQtg3Bb7b0jgJer+nzLX7JFLzCyMI3cInRTZWJuj8/17mOM6ktw3F
-# xRj410UeaISJVn8e394VVd+34kI4EJkU6m1wtTyZ01wkyxuBhlxkDRFIHNyEoYID
+# BgEEAYI3AgEEMC8GCSqGSIb3DQEJBDEiBCC205W+lQiw1iDI0Y1pL5wrYw17isj1
+# AiZzIusUvSFh9TANBgkqhkiG9w0BAQEFAASCAQB0z/9Wa5q+vuf3kRKbHP1dw2QH
+# 3JBB0RW+qg6/kLEl1QX3s6v0yLWyzVxd3/1crhOCULCifDB8lafvH4SHMMLfLCAz
+# TbpLaj2zzqouNgWl9czr2F/5vJe7X8QhM7RMII//pr4WbxjkaRncXftmaX2uL+C+
+# vBScROaoSTzxY1SxKY83NjzHjKRyFpa3igY/wdemUNlgLym/oKYeWi6mibKYJq7w
+# iQ2N5ITgRHpDyTTOg6+07RBG8l6iTIXsPx1dRck86FbwPLAYEEipmZEaGQ7dALDk
+# NCVieHERsUV+86K6wS4M1tnVX5CK3EeCFwo8Ecws0jvW8IpbuXxJsITiZJqnoYID
 # cDCCA2wGCSqGSIb3DQEJBjGCA10wggNZAgEBMG8wWzELMAkGA1UEBhMCQkUxGTAX
 # BgNVBAoTEEdsb2JhbFNpZ24gbnYtc2ExMTAvBgNVBAMTKEdsb2JhbFNpZ24gVGlt
 # ZXN0YW1waW5nIENBIC0gU0hBMzg0IC0gRzQCEAGE06jON4HrV/T9h3uDrrIwDQYJ
 # YIZIAWUDBAIBBQCgggE/MBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZI
-# hvcNAQkFMQ8XDTIyMDIwMTE4MTkxOVowLQYJKoZIhvcNAQk0MSAwHjANBglghkgB
-# ZQMEAgEFAKENBgkqhkiG9w0BAQsFADAvBgkqhkiG9w0BCQQxIgQgSxC8vRn8lakc
-# wBrynP9jqJbibFA7duViscmmTDP0sCwwgaQGCyqGSIb3DQEJEAIMMYGUMIGRMIGO
+# hvcNAQkFMQ8XDTIyMDIwMzE2MTQxMlowLQYJKoZIhvcNAQk0MSAwHjANBglghkgB
+# ZQMEAgEFAKENBgkqhkiG9w0BAQsFADAvBgkqhkiG9w0BCQQxIgQgbZr/mHnX3WOg
+# gUjUYIoqRYAbHzGSpZ9Le4cV7twQo6cwgaQGCyqGSIb3DQEJEAIMMYGUMIGRMIGO
 # MIGLBBTdV7WzhzyGGynGrsRzGvvojXXBSTBzMF+kXTBbMQswCQYDVQQGEwJCRTEZ
 # MBcGA1UEChMQR2xvYmFsU2lnbiBudi1zYTExMC8GA1UEAxMoR2xvYmFsU2lnbiBU
 # aW1lc3RhbXBpbmcgQ0EgLSBTSEEzODQgLSBHNAIQAYTTqM43getX9P2He4OusjAN
-# BgkqhkiG9w0BAQsFAASCAYApV1YVwMSXE1zup4AzevKllL+AhWKspKq2CZKyS4Ai
-# W1O2ysSZ3vHxQpU/IxEBHZ0cOZtGwzH9cp2IffAR/G7tzZzNmzBzAi/cMN93h3GE
-# zefS+qF3Xk++RdND+MgfqaY0PvNpDDltfbFGxLJS/Ew9NdKdALqVA19qVCVrJ3o9
-# D+M8q6BUBlWNYuHqiTdQqfAO5o7pQn+lJeA21EvIYqv+hPdyunYq64asfxntUcY0
-# 5U/UgoeuPVVRj8eJcI5nW/18ZzhKYr3gai2oUMeIj9ik0VhjsBZWofcDeoWnm1Xf
-# P8Q90A9QRFOiSuEAr/HdkzK6WqAKo+5gqcGziQX8njlkufmayX2IeAqemhqqBcKY
-# EqzEflYH7WrA4S0jx+7+3AjsZSg0ZHMMnhM4vYEYTN/QLfS08c3tH7rkXp+u3Y4x
-# NKiEPkGeewvkTgiH9gFare/MDQzyJvRQVpbM9z3vwiLYHFp0X6OjoFfSzon5GFbj
-# OUs2Rbl1dfdg3fzlyFVhdOA=
+# BgkqhkiG9w0BAQsFAASCAYDA/fwB05Haf6GNLACpnFIgX8zY499ioLocFT/B0gp2
+# Gl1R+AijB1kOtan4FPlP0IbVLY+fRyV9WXoiiWLHYDtyVhCOkqA6t0H/1A8ppl+q
+# NeU5iOo9jzeleGRZ3T4YTBcJrfr+Vcx6hTAPLkS97L1AKRbF5uLLHl24Wp0rxfza
+# JJCBsMuPJVODzue2mjQ2MjF5w26b441oRHY6b0kIEiAL1gWUAGvBxSCP9yS8xwcH
+# 8NCagbILW/zM/nX/JsDtHBJzo/b/zJwDlEcqTNey0hC2DM2Hw9JzvgY9Zne3LTth
+# ApcrGJKmJbqa/8ov6m6NU7B1kE3Y9vFqi0JDZt1/1BBT4P8CzyVBVxd50y/gTrTp
+# AaYNV20tsNXA5vhQCw22741yMBxebLNbPTT3pVLWiZc/tMqCpXcyKB0WfxPd++0i
+# eHBZA4Z9boBKA/+w8W2cHH99f+wbzGPWN/hlsFP7EWdkGq34iCeoLlK7BQVQgXwj
+# b7PMaFyoKodjQcNCNwRvFM0=
 # SIG # End signature block
